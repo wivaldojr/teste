@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Motorista</title>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database-compat.js"></script>
+</head>
+<body>
+    <h1>Transmitindo Localização...</h1>
+    <div id="status">Aguardando GPS...</div>
+
+    <script>
+        // COLE SUAS CONFIGURAÇÕES DO FIREBASE AQUI
+        const firebaseConfig = { /* ... */ };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function atualizarPosicao() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition((pos) => {
+                    const dados = {
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        timestamp: Date.now()
+                    };
+                    
+                    // Salva no nó "onibus/001"
+                    db.ref('onibus/001').set(dados);
+                    document.getElementById('status').innerText = `Enviando: ${dados.lat}, ${dados.lng}`;
+                }, error => console.error(error), { enableHighAccuracy: true });
+            }
+        }
+        
+        window.onload = atualizarPosicao;
+    </script>
+</body>
+</html>
