@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel do Motorista</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0f1e;
+      --surface: #111827;
+      --accent: #f97316;
+      --accent2: #fbbf24;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --ok: #22c55e;
+      --danger: #ef4444;
+      --border: #1e293b;
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 40px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(249,115,22,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(249,115,22,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow {
+      position: fixed;
+      top: -120px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(249,115,22,.18) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    header {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .bus-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 0 20px rgba(249,115,22,.6));
+      animation: pulse-icon 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-icon {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(249,115,22,.6)); }
+      50% { transform: scale(1.08); filter: drop-shadow(0 0 36px rgba(249,115,22,.9)); }
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: .8rem;
+      margin-top: 6px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    /* ID card */
+    .id-card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      width: 100%;
+      max-width: 440px;
+      margin-bottom: 20px;
+    }
+
+    .id-label {
+      font-family: 'DM Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .bus-select-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    select, input[type="text"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem;
+      padding: 10px 14px;
+      flex: 1;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+
+    /* status */
+    .status-card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      width: 100%;
+      max-width: 440px;
+      margin-bottom: 20px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+
+    .dot.active {
+      background: var(--ok);
+      box-shadow: 0 0 0 4px rgba(34,197,94,.2);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
+    .dot.error { background: var(--danger); }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+
+    .status-text { font-size: .95rem; font-weight: 700; }
+    .status-sub { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--muted); margin-top: 2px; }
+
+    /* coords */
+    .coords-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .coord-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .coord-label {
+      font-family: 'DM Mono', monospace;
+      font-size: .65rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .coord-val {
+      font-family: 'DM Mono', monospace;
+      font-size: .88rem;
+      color: var(--accent2);
+      font-weight: 500;
+    }
+
+    /* big button */
+    .btn {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .2s, opacity .2s;
+      margin-bottom: 14px;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #0a0f1e;
+      box-shadow: 0 4px 32px rgba(249,115,22,.4);
+    }
+
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(249,115,22,.55); }
+    .btn-start:active { transform: translateY(0); }
+    .btn-start:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btn-stop {
+      background: transparent;
+      border: 2px solid var(--danger);
+      color: var(--danger);
+    }
+
+    .btn-stop:hover { background: rgba(239,68,68,.1); }
+
+    /* share */
+    .share-card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      width: 100%;
+      max-width: 440px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .share-card.show { display: block; }
+
+    .share-link-box {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .share-link-box input {
+      font-size: .75rem;
+      flex: 1;
+      background: var(--bg);
+    }
+
+    .copy-btn {
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #0a0f1e;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: .85rem;
+      transition: opacity .2s;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover { opacity: .85; }
+
+    /* history */
+    .update-log {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+    }
+
+    .log-header {
+      font-family: 'DM Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .log-list {
+      list-style: none;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .log-list li {
+      font-family: 'DM Mono', monospace;
+      font-size: .72rem;
+      color: var(--muted);
+      padding: 3px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .log-list li:last-child { border: none; color: var(--ok); }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--ok);
+      color: #0a0f1e;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      padding: 12px 24px;
+      border-radius: 50px;
+      z-index: 100;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 480px) {
+      .coords-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+
+  <header>
+    <span class="bus-icon">🚌</span>
+    <h1>Painel do <span>Motorista</span></h1>
+    <p class="subtitle">Transmissão de localização em tempo real</p>
+  </header>
+
+  <!-- Bus ID -->
+  <div class="id-card">
+    <div class="id-label">Identificação do Ônibus</div>
+    <div class="bus-select-row">
+      <input type="text" id="busId" placeholder="Ex: LINHA-101" maxlength="20" value="LINHA-101"/>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-card">
+    <div class="status-row">
+      <div class="dot" id="dot"></div>
+      <div>
+        <div class="status-text" id="statusText">Aguardando início</div>
+        <div class="status-sub" id="statusSub">Pressione Iniciar para transmitir</div>
+      </div>
+    </div>
+    <div class="coords-grid">
+      <div class="coord-box">
+        <div class="coord-label">Latitude</div>
+        <div class="coord-val" id="latVal">—</div>
+      </div>
+      <div class="coord-box">
+        <div class="coord-label">Longitude</div>
+        <div class="coord-val" id="lngVal">—</div>
+      </div>
+      <div class="coord-box">
+        <div class="coord-label">Precisão</div>
+        <div class="coord-val" id="accVal">—</div>
+      </div>
+      <div class="coord-box">
+        <div class="coord-label">Velocidade</div>
+        <div class="coord-val" id="spdVal">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <button class="btn btn-start" id="startBtn" onclick="startTracking()">▶ Iniciar Transmissão</button>
+  <button class="btn btn-stop" id="stopBtn" onclick="stopTracking()" style="display:none">⏹ Parar Transmissão</button>
+
+  <!-- Share link -->
+  <div class="share-card" id="shareCard">
+    <div class="id-label">🔗 Compartilhe com os passageiros</div>
+    <div class="share-link-box">
+      <input type="text" id="shareLink" readonly/>
+      <button class="copy-btn" onclick="copyLink()">Copiar</button>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="update-log">
+    <div class="log-header">📡 Histórico de atualizações</div>
+    <ul class="log-list" id="logList">
+      <li>Aguardando início da transmissão…</li>
+    </ul>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // ─── CONFIGURE SUA CHAVE DO FIREBASE AQUI ──────────────────────────────
+    const firebaseConfig = {
+  apiKey: "AIzaSyD9Qz_EQwwLbseGGEOPTSw6LokZtr7C7p4",
+  authDomain: "circularcma-bae6c.firebaseapp.com",
+  databaseURL: "https://circularcma-bae6c-default-rtdb.firebaseio.com",
+  projectId: "circularcma-bae6c",
+  storageBucket: "circularcma-bae6c.firebasestorage.app",
+  messagingSenderId: "449165898696",
+  appId: "1:449165898696:web:c577cf6fbc140536e2c6fd"
+};
+    // ────────────────────────────────────────────────────────────────────────
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let watchId = null;
+    let updateCount = 0;
+
+    function log(msg) {
+      const li = document.createElement('li');
+      const now = new Date().toLocaleTimeString('pt-BR');
+      li.textContent = `[${now}] ${msg}`;
+      const list = document.getElementById('logList');
+      list.appendChild(li);
+      list.scrollTop = list.scrollHeight;
+      if (list.children.length > 50) list.removeChild(list.firstChild);
+    }
+
+    function setStatus(text, sub, state) {
+      document.getElementById('statusText').textContent = text;
+      document.getElementById('statusSub').textContent = sub;
+      const dot = document.getElementById('dot');
+      dot.className = 'dot' + (state === 'ok' ? ' active' : state === 'err' ? ' error' : '');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    window.startTracking = function () {
+      const busId = document.getElementById('busId').value.trim();
+      if (!busId) { showToast('Informe o ID do ônibus!'); return; }
+
+      if (!navigator.geolocation) {
+        setStatus('GPS não suportado', 'Seu dispositivo não suporta geolocalização', 'err');
+        return;
+      }
+
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('stopBtn').style.display = 'block';
+      document.getElementById('busId').disabled = true;
+
+      const shareUrl = `${location.origin}/passageiro.html?bus=${encodeURIComponent(busId)}`;
+      document.getElementById('shareLink').value = shareUrl;
+      document.getElementById('shareCard').classList.add('show');
+
+      setStatus('Obtendo GPS…', 'Aguarde', '');
+      log('Iniciando rastreamento para ' + busId);
+
+      watchId = navigator.geolocation.watchPosition(
+        async (pos) => {
+          const { latitude, longitude, accuracy, speed } = pos.coords;
+          updateCount++;
+
+          document.getElementById('latVal').textContent = latitude.toFixed(6);
+          document.getElementById('lngVal').textContent = longitude.toFixed(6);
+          document.getElementById('accVal').textContent = accuracy ? `${accuracy.toFixed(0)} m` : '—';
+          document.getElementById('spdVal').textContent = speed != null ? `${(speed * 3.6).toFixed(1)} km/h` : '—';
+
+          setStatus('Transmitindo', `Atualização #${updateCount}`, 'ok');
+
+          try {
+            await set(ref(db, `buses/${busId}`), {
+              lat: latitude,
+              lng: longitude,
+              accuracy,
+              speed: speed != null ? (speed * 3.6) : null,
+              updatedAt: serverTimestamp(),
+              busId
+            });
+            log(`Enviado → (${latitude.toFixed(5)}, ${longitude.toFixed(5)})`);
+          } catch (e) {
+            log('Erro ao enviar: ' + e.message);
+            setStatus('Erro de conexão', e.message, 'err');
+          }
+        },
+        (err) => {
+          setStatus('Erro de GPS', err.message, 'err');
+          log('Erro GPS: ' + err.message);
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      );
+    };
+
+    window.stopTracking = function () {
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+      document.getElementById('startBtn').style.display = 'block';
+      document.getElementById('stopBtn').style.display = 'none';
+      document.getElementById('busId').disabled = false;
+      setStatus('Transmissão encerrada', 'Pressione Iniciar para retomar', '');
+      log('Transmissão encerrada pelo motorista.');
+    };
+
+    window.copyLink = function () {
+      const val = document.getElementById('shareLink').value;
+      navigator.clipboard.writeText(val).then(() => showToast('Link copiado! ✓'));
+    };
+  </script>
+</body>
+</html>
