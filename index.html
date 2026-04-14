@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -366,7 +366,7 @@
   <div class="id-card">
     <div class="id-label">Identificação do Ônibus</div>
     <div class="bus-select-row">
-      <input type="text" id="busId" placeholder="Ex: CIRCULAR" maxlength="20" value="CIRCULAR"/>
+      <input type="text" id="busId" placeholder="Ex: LINHA-101" maxlength="20" value="LINHA-101"/>
     </div>
   </div>
 
@@ -428,25 +428,15 @@
     import { getDatabase, ref, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     // ─── CONFIGURE SUA CHAVE DO FIREBASE AQUI ──────────────────────────────
-//    const firebaseConfig = {
-//      apiKey: "AIzaSyDemo_SUBSTITUA_PELA_SUA_CHAVE",
-//      authDomain: "seu-projeto.firebaseapp.com",
-//      databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
-//      projectId: "seu-projeto",
-//      storageBucket: "seu-projeto.appspot.com",
-//     messagingSenderId: "000000000000",
-//      appId: "1:000000000000:web:abcdefabcdef"
- //   };
-    
-     const firebaseConfig = {
+    const firebaseConfig = {
   apiKey: "AIzaSyD9Qz_EQwwLbseGGEOPTSw6LokZtr7C7p4",
   authDomain: "circularcma-bae6c.firebaseapp.com",
+  databaseURL: "https://circularcma-bae6c-default-rtdb.firebaseio.com",
   projectId: "circularcma-bae6c",
   storageBucket: "circularcma-bae6c.firebasestorage.app",
   messagingSenderId: "449165898696",
   appId: "1:449165898696:web:c577cf6fbc140536e2c6fd"
 };
-
     // ────────────────────────────────────────────────────────────────────────
 
     const app = initializeApp(firebaseConfig);
@@ -492,8 +482,7 @@
       document.getElementById('stopBtn').style.display = 'block';
       document.getElementById('busId').disabled = true;
 
-      //const shareUrl = `${location.origin}/passageiro.html?bus=${encodeURIComponent(busId)}`;
-      const shareUrl = "https://sites.google.com/ufersa.edu.br/circularcma/in%C3%ADcio";
+      const shareUrl = `${location.origin}/passageiro.html?bus=${encodeURIComponent(busId)}`;
       document.getElementById('shareLink').value = shareUrl;
       document.getElementById('shareCard').classList.add('show');
 
