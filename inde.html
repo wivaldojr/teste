@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motorista — Linha 47</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --yellow: #FFD100;
+    --white: #f5f5f0;
+    --gray: #1e1e1e;
+    --red: #ff3b30;
+    --green: #30d158;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  /* animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,209,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,209,0,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .card {
+    background: var(--gray);
+    border: 2px solid var(--yellow);
+    border-radius: 4px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    box-shadow: 8px 8px 0 var(--yellow);
+  }
+
+  .badge {
+    position: absolute;
+    top: -16px;
+    left: 24px;
+    background: var(--yellow);
+    color: var(--black);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 2px;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--yellow);
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+    padding: 14px 16px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 3px;
+    border-left: 3px solid #333;
+    transition: border-color 0.3s;
+  }
+
+  .status-row.active { border-color: var(--green); }
+  .status-row.error  { border-color: var(--red); }
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #444;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .active .dot { background: var(--green); animation: pulse 1.5s infinite; }
+  .error .dot  { background: var(--red); }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(48,209,88,0.4); }
+    50%      { box-shadow: 0 0 0 6px rgba(48,209,88,0); }
+  }
+
+  #status-text {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #aaa;
+  }
+  .active #status-text { color: var(--green); }
+  .error  #status-text { color: var(--red); }
+
+  .coords {
+    font-size: 11px;
+    color: #555;
+    margin-bottom: 32px;
+    letter-spacing: 0.5px;
+    line-height: 1.8;
+    min-height: 40px;
+  }
+  .coords span { color: var(--yellow); }
+
+  .btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-start {
+    background: var(--yellow);
+    color: var(--black);
+    box-shadow: 4px 4px 0 rgba(255,209,0,0.3);
+  }
+  .btn-start:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(255,209,0,0.3); }
+  .btn-start:active { transform: translate(0,0); box-shadow: none; }
+
+  .btn-stop {
+    background: transparent;
+    color: var(--red);
+    border: 2px solid var(--red);
+    margin-top: 12px;
+    display: none;
+  }
+  .btn-stop:hover { background: var(--red); color: var(--white); }
+
+  .counter {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 1px;
+  }
+  .counter strong { color: var(--yellow); }
+
+  .info-box {
+    margin-top: 28px;
+    padding: 14px;
+    background: rgba(255,209,0,0.05);
+    border: 1px solid rgba(255,209,0,0.15);
+    border-radius: 3px;
+    font-size: 11px;
+    color: #666;
+    line-height: 1.7;
+  }
+  .info-box a { color: var(--yellow); text-decoration: none; }
+
+  .wakelock-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 3px;
+    border: 1px solid #2a2a2a;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: #555;
+  }
+  .wakelock-row.on  { border-color: rgba(48,209,88,0.3); color: var(--green); }
+  .wakelock-row.off { border-color: rgba(255,59,48,0.3);  color: var(--red); }
+  .wl-icon { font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="badge">PAINEL DO MOTORISTA</div>
+  <h1>LINHA<br>47</h1>
+  <p class="subtitle">Terminal Central → Bairro Norte</p>
+
+  <div class="status-row" id="status-row">
+    <div class="dot"></div>
+    <span id="status-text">Aguardando início do rastreamento...</span>
+  </div>
+
+  <div class="coords" id="coords">
+    LAT &nbsp;—<br>
+    LNG &nbsp;—
+  </div>
+
+  <button class="btn btn-start" id="btn-start" onclick="iniciar()">▶ INICIAR RASTREAMENTO</button>
+  <button class="btn btn-stop"  id="btn-stop"  onclick="parar()">■ PARAR</button>
+
+  <div class="counter" id="counter">Atualizações enviadas: <strong>0</strong></div>
+
+  <div class="wakelock-row" id="wl-row">
+    <span><span class="wl-icon">🔒</span> &nbsp;TELA SEMPRE ATIVA</span>
+    <span id="wl-status">INATIVO</span>
+  </div>
+
+  <div class="info-box">
+    ⚠️ Esta página envia sua localização GPS a cada 5 segundos.<br>
+    A tela será mantida acesa automaticamente.<br>
+    Se minimizar o app, o rastreamento pode pausar.<br><br>
+    Passageiros acompanham em: <a href="mapa.html">mapa.html</a>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ─────────────────────────────────────────────
+  const FIREBASE_URL = 'https://circular-ufersa-default-rtdb.firebaseio.com/onibus/CIRCULAR.json';
+  const LINHA_ID = 'CIRCULAR';
+  const INTERVALO_MS = 5000; // 5 segundos
+  // ───────────────────────────────────────────────────────
+
+  let watchId   = null;
+  let envios    = 0;
+  let intervalId = null;
+  let ultimaPos  = null;
+  let wakeLock   = null; // referência ao Wake Lock ativo
+
+  // ── WAKE LOCK ──────────────────────────────────────────
+  async function ativarWakeLock() {
+    if (!('wakeLock' in navigator)) {
+      setWLStatus(false, 'NÃO SUPORTADO');
+      return;
+    }
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      setWLStatus(true, 'ATIVO');
+
+      // O sistema pode liberar o Wake Lock automaticamente quando o
+      // usuário muda de aba ou minimiza. Reativamos ao voltar.
+      wakeLock.addEventListener('release', () => {
+        setWLStatus(false, 'LIBERADO');
+      });
+    } catch (err) {
+      setWLStatus(false, 'ERRO: ' + err.message);
+    }
+  }
+
+  async function liberarWakeLock() {
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+    setWLStatus(false, 'INATIVO');
+  }
+
+  // Reativa o Wake Lock automaticamente ao voltar para a página
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && watchId !== null) {
+      // Rastreamento ativo → reativa o wake lock
+      await ativarWakeLock();
+    }
+  });
+
+  function setWLStatus(ativo, texto) {
+    const row = document.getElementById('wl-row');
+    row.className = 'wakelock-row ' + (ativo ? 'on' : 'off');
+    document.getElementById('wl-status').textContent = texto;
+  }
+  // ──────────────────────────────────────────────────────
+
+  async function iniciar() {
+    if (!navigator.geolocation) {
+      setStatus('error', 'GPS não suportado neste dispositivo.');
+      return;
+    }
+
+    setStatus('active', 'Obtendo sinal GPS...');
+    document.getElementById('btn-start').style.display = 'none';
+    document.getElementById('btn-stop').style.display  = 'block';
+
+    // Ativa Wake Lock para manter tela acesa
+    await ativarWakeLock();
+
+    watchId = navigator.geolocation.watchPosition(
+      pos => {
+        ultimaPos = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          acc: Math.round(pos.coords.accuracy)
+        };
+        document.getElementById('coords').innerHTML =
+          `LAT &nbsp;<span>${ultimaPos.lat.toFixed(6)}</span><br>` +
+          `LNG &nbsp;<span>${ultimaPos.lng.toFixed(6)}</span><br>` +
+          `PREC <span>±${ultimaPos.acc}m</span>`;
+        setStatus('active', 'Rastreando — sinal OK');
+      },
+      err => setStatus('error', 'Erro de GPS: ' + err.message),
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+
+    intervalId = setInterval(() => {
+      if (ultimaPos) enviarLocalizacao(ultimaPos);
+    }, INTERVALO_MS);
+  }
+
+  async function parar() {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    if (intervalId)       clearInterval(intervalId);
+    watchId = null; intervalId = null; ultimaPos = null;
+
+    // Libera o Wake Lock ao parar
+    await liberarWakeLock();
+
+    setStatus('', 'Rastreamento encerrado.');
+    document.getElementById('btn-start').style.display = 'block';
+    document.getElementById('btn-stop').style.display  = 'none';
+    document.getElementById('coords').innerHTML = 'LAT &nbsp;—<br>LNG &nbsp;—';
+  }
+
+  async function enviarLocalizacao({ lat, lng, acc }) {
+    const payload = { lat, lng, acc, ts: Date.now(), linha: LINHA_ID };
+    try {
+      await fetch(FIREBASE_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      envios++;
+      document.getElementById('counter').innerHTML =
+        `Atualizações enviadas: <strong>${envios}</strong>`;
+    } catch(e) {
+      setStatus('error', 'Falha ao enviar dados.');
+    }
+  }
+
+  function setStatus(type, text) {
+    const row = document.getElementById('status-row');
+    row.className = 'status-row ' + type;
+    document.getElementById('status-text').textContent = text;
+  }
+</script>
+</body>
+</html>
